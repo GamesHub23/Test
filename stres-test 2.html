@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GPU+CPU Stress Test</title>
+  <style>
+    body, html { margin: 0; overflow: hidden; background: black; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<audio id="bgAudio" src="test_gpu_audio/Nunta.mp3" autoplay loop></audio>
+<canvas id="glcanvas"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  // Init WebGL
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("glcanvas") });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  const geometry = new THREE.BoxGeometry();
+  const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+  const cubes = [];
+
+  // Light
+  const light = new THREE.PointLight(0xffffff, 1, 100);
+  light.position.set(0, 0, 10);
+  scene.add(light);
+
+  for (let i = 0; i < 5000; i++) {
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.set((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100);
+    scene.add(cube);
+    cubes.push(cube);
+  }
+
+  camera.position.z = 50;
+
+  // Heavy CPU loop
+  function burnCPU() {
+    let x = 0;
+    for (let i = 0; i < 1e7; i++) {
+      x += Math.sqrt(i) * Math.random();
+    }
+    setTimeout(burnCPU, 10); // repeat without pause
+  }
+
+  burnCPU();
+
+  // Animate
+  function animate() {
+    requestAnimationFrame(animate);
+    cubes.forEach(cube => {
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+    });
+    renderer.render(scene, camera);
+  }
+
+  animate();
+</script>
+</body>
+</html>
